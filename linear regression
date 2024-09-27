@@ -1,0 +1,61 @@
+# %%
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+
+# %%
+data=pd.read_csv('dataset_t1.csv')
+data
+
+# %%
+data.head()
+
+# %%
+train=data.iloc[:800]
+test=data.iloc[800:]
+x_train=train['x'].values
+y_train=train['y'].values
+x_test = test['x'].values
+y_test = test['y'].values
+x_train[:5],x_test[:5],y_train[:5],y_test[:5]
+
+# %%
+import random
+m=np.random.randn()
+c=np.random.randn()
+n=len(x_train)
+l=0.00069
+m,c,n
+
+# %%
+for i in range(n):
+    y_pred=(m * x_train + c)
+    
+    cost=(sum((y_train-y_pred)**2))/n
+
+    d_m = sum(x_train*(y_train - y_pred))*(-2)/n
+
+    d_c = sum((y_train - y_pred))*(-2)/n
+
+    m = m - d_m*l
+
+    c = c - d_c*l
+m,c
+
+# %%
+y_pred = (m*x_train) + c
+plt.scatter(x_train,y_train,color='blue')
+plt.scatter(x_train,y_pred,color='red')
+plt.show()
+
+# %%
+def LinearRegression(X):
+    Y = (m*X) + c
+    return Y
+
+LinearRegression(x_test[1])
+
+# %%
+
+
+
