@@ -1,0 +1,105 @@
+# %%
+import pandas as pd
+
+data = {
+    'review': [
+        "I loved the movie, it was fantastic!",
+        "The film was boring and too long.",
+        "An amazing experience, highly recommend it.",
+        "It was a waste of time and money.",
+        "The plot was intriguing and well-executed.",
+        "A terrible movie with poor acting.",
+        "Fantastic story and great performances.",
+        "I didn't enjoy it at all, very disappointing.",
+        "One of the best movies I have seen this year.",
+        "The movie was dull and predictable."
+    ],
+    'label': ['good', 'bad', 'good', 'bad', 'good', 'bad', 'good', 'bad', 'good', 'bad']
+}
+
+df = pd.DataFrame(data)
+
+
+df.to_csv('movie_reviews.csv', index=False)
+
+
+# %%
+import pandas as pd
+import numpy as np
+import tensorflow as tf
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+
+df = pd.read_csv('movie_reviews.csv')
+
+
+label_map = {'good': 1, 'bad': 0}
+df['label'] = df['label'].map(label_map)
+
+
+X = df['review'].values
+y = df['label'].values
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+tokenizer = Tokenizer(num_words=1000)
+tokenizer.fit_on_texts(X_train)
+X_train_sequences = tokenizer.texts_to_sequences(X_train)
+X_test_sequences = tokenizer.texts_to_sequences(X_test)
+
+X_train_padded = pad_sequences(X_train_sequences, maxlen=100)
+X_test_padded = pad_sequences(X_test_sequences, maxlen=100)
+
+
+# %%
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Embedding, LSTM, GlobalAveragePooling1D
+
+model = Sequential([
+    Embedding(input_dim=1000, output_dim=16, input_length=100),
+    LSTM(64, return_sequences=True),
+    GlobalAveragePooling1D(),
+    Dense(32, activation='relu'),
+    Dense(1, activation='sigmoid')
+])
+
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+# Train the model
+history = model.fit(X_train_padded, y_train, epochs=5, validation_split=0.2)
+
+
+# %%
+
+loss, accuracy = model.evaluate(X_test_padded, y_test)
+print(f'Test Accuracy: {accuracy:.4f}')
+
+
+# %%
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(12, 5))
+
+plt.subplot(1, 2, 1)
+plt.plot(history.history['accuracy'], label='Training Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.title('Model Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.legend()
+
+plt.subplot(1, 2, 2)
+plt.plot(history.history['loss'], label='Training Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.title('Model Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+
+
+
